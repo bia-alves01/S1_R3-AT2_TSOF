@@ -1,151 +1,133 @@
-import { describe, test, expect } from 'vitest';
-import request from 'supertest';
-import app from './src/app.js';
+const request = require('supertest');
+const app = require('./app'); // Altere para o caminho do seu arquivo principal da aplicação/API
 
-describe('Suíte de Testes - API', () => {
+describe('Suíte de Testes - Veículos', () => {
 
+  // ==========================================
+  // CLIENTES
+  // ==========================================
+  describe('Módulo de Clientes', () => {
+    
+    // CT-001: Cadastrar cliente com dados válidos[cite: 1]
+    test('CT-001 - Deve cadastrar cliente com dados válidos', async () => {
+      const novoCliente = {
+        nome: 'João da Silva',
+        cpf: '12345678900',
+        cep: '13360000',
+        logradouro: 'Rua Flores',
+        bairro: 'Centro',
+        cidade: 'Sumaré',
+        uf: 'SP',
+        numero: '100',
+        complemento: 'Apto 12'
+      };
 
+      const response = await request(app)
+        .post('/clientes')
+        .send(novoCliente);
 
-    // CT-001 - Criar clientes
-  
-    test('CT-001 - Deve criar um cliente com sucesso', async () => {
-
-        const cliente = {
-            nome: 'Cliente Teste',
-            CPF: '12345678901',
-            CEP: '01001000',
-            logradouro: 'Rua Teste',
-            bairro: 'Centro',
-            cidade: 'São Paulo',
-            UF: 'SP',
-            numero: '100',
-            complemento: 'Casa'
-        };
-
-        const resposta = await request(app)
-            .post('/clientes')
-            .send(cliente);
-
-        expect(resposta.statusCode).toBe(201);
-        expect(resposta.body).toBeDefined();
+      expect(response.statusCode).toBe(201);
+      expect(response.body).toHaveProperty('id');
     });
 
+    // CT-002: Editar cliente[cite: 1]
+    test('CT-002 - Deve editar um cliente cadastrado', async () => {
+      const clienteId = 1; // ID existente conforme pré-condição[cite: 1]
+      const dadosAtualizados = {
+        nome: 'João da Silva Editado',
+        logradouro: 'Avenida Central',
+        numero: '200'
+      };
 
+      const response = await request(app)
+        .put(`/clientes/${clienteId}`)
+        .send(dadosAtualizados);
 
-    // CT-002 - Deletar clientes
-
-    test('CT-002 - Deve excluir um cliente com sucesso', async () => {
-
-        const idCliente = 66;
-
-        const resposta = await request(app)
-            .delete(`/clientes/${idCliente}`);
-
-        expect([200, 204]).toContain(resposta.statusCode);
+      expect(response.statusCode).toBe(200);
     });
 
+    // CT-003: Listar clientes cadastrados[cite: 1]
+    test('CT-003 - Deve listar clientes cadastrados', async () => {
+      const response = await request(app)
+        .get('/clientes');
 
-
-    // CT-003 - Criar veículos
-
-    test('CT-003 - Deve criar um veículo com sucesso', async () => {
-
-        const veiculo = {
-            modelo: 'Corolla',
-            placa: 'ABC1234',
-            ano: 2024,
-            cor: 'Prata',
-            valor: 120000,
-            idCliente: 1,
-            idMontadora: 1
-        };
-
-        const resposta = await request(app)
-            .post('/veiculos')
-            .send(veiculo);
-
-        expect(resposta.statusCode).toBe(201);
-        expect(resposta.body).toBeDefined();
+      expect(response.statusCode).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
     });
 
+  });
 
+  // ==========================================
+  // MONTADORAS
+  // ==========================================
+  describe('Módulo de Montadoras', () => {
 
-    // CT-004 - Atualizar veículos
-   
-    test('CT-004 - Deve atualizar um veículo com sucesso', async () => {
+    // CT-004: Cadastrar montadora com dados válidos[cite: 1]
+    test('CT-004 - Deve cadastrar montadora com dados válidos', async () => {
+      const novaMontadora = {
+        nome: 'Toyota',
+        paisOrigem: 'Japão'
+      };
 
-        const novosDados = {
-            modelo: 'Corolla XEi',
-            placa: 'ABC1234',
-            ano: 2024,
-            cor: 'Preto',
-            valor: 125000,
-            idCliente: 1,
-            idMontadora: 1
-        };
+      const response = await request(app)
+        .post('/montadoras')
+        .send(novaMontadora);
 
-        const resposta = await request(app)
-            .put('/veiculos?id=8')
-            .send(novosDados);
-
-        expect([200, 204]).toContain(resposta.statusCode);
+      expect(response.statusCode).toBe(201);
+      expect(response.body).toHaveProperty('id');
     });
 
+    // CT-005: Editar dados de uma montadora cadastrada[cite: 1]
+    test('CT-005 - Deve editar dados de uma montadora cadastrada', async () => {
+      const montadoraId = 1; // ID existente conforme pré-condição[cite: 1]
+      const dadosAtualizados = {
+        nome: 'Toyota do Brasil',
+        paisOrigem: 'Brasil'
+      };
 
-    // CT-005 - Exibir listagem de veículos
+      const response = await request(app)
+        .put(`/montadoras/${montadoraId}`)
+        .send(dadosAtualizados);
 
-    test('CT-005 - Deve listar os veículos cadastrados', async () => {
-
-        const resposta = await request(app)
-            .get('/veiculos');
-
-        expect(resposta.statusCode).toBe(200);
-        expect(Array.isArray(resposta.body)).toBe(true);
+      expect(response.statusCode).toBe(200);
     });
 
+    // CT-006: Listar montadoras cadastradas[cite: 1]
+    test('CT-006 - Deve listar montadoras cadastradas', async () => {
+      const response = await request(app)
+        .get('/montadoras');
 
-
-    // CT-006 - Cadastro de montadoras
-
-    test('CT-006 - Deve cadastrar uma montadora com sucesso', async () => {
-
-        const montadora = {
-            nome: 'Toyota',
-            pais: 'Japão'
-        };
-
-        const resposta = await request(app)
-            .post('/montadoras')
-            .send(montadora);
-
-        expect(resposta.statusCode).toBe(201);
-        expect(resposta.body).toBeDefined();
+      expect(response.statusCode).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
     });
 
+  });
 
+  // ==========================================
+  // VEÍCULOS
+  // ==========================================
+  describe('Módulo de Veículos', () => {
 
-    // CT-007 - Selecionar montadoras
+    // CT-007: Cadastrar veículo com dados válidos[cite: 1]
+    test('CT-007 - Deve cadastrar veículo com dados válidos', async () => {
+      const novoVeiculo = {
+        idMontadora: 1,
+        idCliente: 1,
+        modelo: 'Corolla',
+        placa: 'ABC1D23',
+        ano: 2023,
+        cor: 'Prata',
+        valor: 120000.00
+      };
 
-    test('CT-007 - Deve listar as montadoras cadastradas', async () => {
+      const response = await request(app)
+        .post('/veiculos')
+        .send(novoVeiculo);
 
-        const resposta = await request(app)
-            .get('/montadoras');
-
-        expect(resposta.statusCode).toBe(200);
-        expect(Array.isArray(resposta.body)).toBe(true);
+      expect(response.statusCode).toBe(201);
+      expect(response.body).toHaveProperty('id');
     });
 
-
-    // CT-008 - Excluir montadoras
-
-    test('CT-008 - Deve excluir uma montadora com sucesso', async () => {
-
-        const idMontadora = 295;
-
-        const resposta = await request(app)
-            .delete(`/montadoras/${idMontadora}`);
-
-        expect([200, 204]).toContain(resposta.statusCode);
-    });
+  });
 
 });
